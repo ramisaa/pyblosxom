@@ -108,7 +108,7 @@ class Pyblosxom:
 
         # entryparser callback is run here first to allow other
         # plugins register what file extensions can be used
-        entry_ext = config.get("entryext", ".txt")
+        entry_ext = config.get("entryext", "txt")
         data['extensions'] = tools.run_callback("entryparser",
                                                 {entry_ext:
                                                    blosxom_entry_parser},

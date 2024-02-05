@@ -85,7 +85,9 @@ def cb_preformat(args):
 
 
 def parse(story, request):
-    body = md.convert(story.decode("utf-8")).encode("utf-8")
+    #body = md.convert(story.decode("utf-8")).encode("utf-8")
+    body = markdown.markdown(story, output_format="html4",
+                       extensions=["footnotes"]) #.encode("utf-8")
     md.reset()
     return body
 

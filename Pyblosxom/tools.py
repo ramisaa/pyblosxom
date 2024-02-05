@@ -592,16 +592,16 @@ def _walk_internal(root, recurse, pattern, ignorere, return_folders):
         names = os.listdir(root)
     except OSError:
         return []
-
     # check each file
     for name in names:
         fullname = os.path.normpath(os.path.join(root, name))
-
+        print("fullname", fullname, "name", name, "pattern", pattern, "is file", os.path.isfile(fullname), "return folders", return_folders, "ignorere", ignorere, "match", pattern.match(name))
         # grab if it matches our pattern and entry type
         if pattern.match(name):
             if ((os.path.isfile(fullname) and not return_folders) or
                 (return_folders and os.path.isdir(fullname) and
                  (not ignorere or not ignorere.match(fullname)))):
+                print("appending ", name)
                 result.append(fullname)
 
         # recursively scan other folders, appending results
