@@ -12,7 +12,7 @@
 setup and default handlers are defined here.
 """
 
-from __future__ import nested_scopes, generators
+
 
 # Python imports
 import cgi
@@ -22,10 +22,7 @@ import sys
 import time
 from Pyblosxom.blosxom import blosxom_entry_parser, blosxom_handler
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
+from io import BytesIO, StringIO
 
 # Pyblosxom imports
 from Pyblosxom import __version__
@@ -87,7 +84,7 @@ class Pyblosxom:
         # otherwise we compose it from SCRIPT_NAME in the environment
         # or we leave it blank.
         if not "base_url" in config:
-            if py_http.has_key('SCRIPT_NAME'):
+            if 'SCRIPT_NAME' in py_http:
                 # allow http and https
                 config['base_url'] = '%s://%s%s' % \
                                      (py_http['wsgi.url_scheme'],
@@ -111,8 +108,10 @@ class Pyblosxom:
 
         # entryparser callback is run here first to allow other
         # plugins register what file extensions can be used
+        entry_ext = config.get("entryext", "txt")
         data['extensions'] = tools.run_callback("entryparser",
-                                                {'txt': blosxom_entry_parser},
+                                                {entry_ext:
+                                                   blosxom_entry_parser},
                                                 mappingfunc=lambda x, y: y,
                                                 defaultfunc=lambda x: x)
 
@@ -154,7 +153,7 @@ class Pyblosxom:
         """
         self.initialize()
 
-        # buffer the input stream in a StringIO instance if dynamic
+        # buffer the input stream in a BytesIO instance if dynamic
         # rendering is used.  This is done to have a known/consistent
         # way of accessing incoming data.
         if not static:
@@ -238,7 +237,7 @@ class Pyblosxom:
             response.send_headers(sys.stdout)
         response.send_body(sys.stdout)
 
-        print response.read()
+        print(response.read())
 
         # we're done, clean up
         self.cleanup()
@@ -260,15 +259,15 @@ class Pyblosxom:
 
         config = self._request.get_configuration()
         data = self._request.get_data()
-        print "Performing static rendering."
+        print("Performing static rendering.")
         if incremental:
-            print "Incremental is set."
+            print("Incremental is set.")
 
         static_dir = config.get("static_dir", "")
         data_dir = config["datadir"]
 
         if not static_dir:
-            print "Error: You must set static_dir in your config file."
+            print("Error: You must set static_dir in your config file.")
             return 0
 
         flavours = config.get("static_flavours", ["html"])
@@ -289,7 +288,7 @@ class Pyblosxom:
         for mem in listing:
             # skip the ones that have bad extensions
             ext = mem[mem.rfind(".") + 1:]
-            if not ext in data["extensions"].keys():
+            if not ext in list(data["extensions"].keys()):
                 continue
 
             # grab the mtime of the entry file
@@ -339,10 +338,10 @@ class Pyblosxom:
                 for f in flavours:
                     render_me.append((mem + "." + f, ""))
 
-        print "rendering %d entries." % len(render_me)
+        print("rendering %d entries." % len(render_me))
 
         # handle categories
-        categories = categories.keys()
+        categories = list(categories.keys())
         categories.sort()
 
         # if they have stuff in their root category, it'll add a "/"
@@ -351,7 +350,7 @@ class Pyblosxom:
         if "/" in categories:
             categories.remove("/")
 
-        print "rendering %d category indexes." % len(categories)
+        print("rendering %d category indexes." % len(categories))
 
         for mem in categories:
             mem = os.path.normpath(mem + "/index.")
@@ -359,12 +358,12 @@ class Pyblosxom:
                 render_me.append((mem + f, ""))
 
         # now we handle dates
-        dates = dates.keys()
+        dates = list(dates.keys())
         dates.sort()
 
         dates = ["/" + d for d in dates]
 
-        print "rendering %d date indexes." % len(dates)
+        print("rendering %d date indexes." % len(dates))
 
         for mem in dates:
             mem = os.path.normpath(mem + "/index.")
@@ -373,7 +372,7 @@ class Pyblosxom:
 
         # now we handle arbitrary urls
         additional_stuff = config.get("static_urls", [])
-        print "rendering %d arbitrary urls." % len(additional_stuff)
+        print("rendering %d arbitrary urls." % len(additional_stuff))
 
         for mem in additional_stuff:
             if mem.find("?") != -1:
@@ -388,7 +387,7 @@ class Pyblosxom:
         # now we pass the complete render list to all the plugins via
         # cb_staticrender_filelist and they can add to the filelist
         # any (url, query) tuples they want rendered.
-        print "(before) building %s files." % len(render_me)
+        print("(before) building %s files." % len(render_me))
         tools.run_callback("staticrender_filelist",
                            {'request': self._request,
                             'filelist': render_me,
@@ -397,11 +396,11 @@ class Pyblosxom:
 
         render_me = sorted(set(render_me))
 
-        print "building %s files." % len(render_me)
+        print("building %s files." % len(render_me))
 
         for url, q in render_me:
             url = url.replace(os.sep, "/")
-            print "rendering '%s' ..." % url
+            print("rendering '%s' ..." % url)
 
             tools.render_url_statically(dict(config), url, q)
 
@@ -466,7 +465,8 @@ class PyblosxomWSGIApp:
 
         start_response(response.status, list(response.headers.items()))
         response.seek(0)
-        return response.read()
+
+        return response.read().encode(self.config.get("blog_encoding", "utf-8"))
 
     def __call__(self, env, start_response):
         return [self.run_pyblosxom(env, start_response)]
@@ -566,7 +566,7 @@ class Request(object):
         # this holds the input stream.  initialized for dynamic
         # rendering in Pyblosxom.run.  for static rendering there is
         # no input stream.
-        self._in = StringIO()
+        self._in = BytesIO()
 
         # copy methods to the Request object.
         self.read = self._in.read
@@ -586,7 +586,7 @@ class Request(object):
 
     def __iter__(self):
         """
-        Can't copy the __iter__ method over from the StringIO instance
+        Can't copy the __iter__ method over from the BytesIO instance
         cause iter looks for the method in the class instead of the
         instance.
 
@@ -596,7 +596,7 @@ class Request(object):
 
     def buffer_input_stream(self):
         """
-        Buffer the input stream in a StringIO instance.  This is done
+        Buffer the input stream in a BytesIO instance.  This is done
         to have a known/consistent way of accessing incoming data.
         For example the input stream passed by mod_python does not
         offer the same functionality as ``sys.stdin``.
@@ -725,7 +725,7 @@ class Request(object):
         if name == "http":
             return self._http
 
-        raise AttributeError, name
+        raise AttributeError(name)
 
     def __repr__(self):
         return "Request"
@@ -760,7 +760,7 @@ class Response(object):
 
     def __iter__(self):
         """Can't copy the ``__iter__`` method over from the
-        ``StringIO`` instance because iter looks for the method in the
+        ``BytesIO`` instance because iter looks for the method in the
         class instead of the instance.
 
         See
@@ -805,7 +805,7 @@ class Response(object):
         """
         key = key.strip()
         if key.find(' ') != -1 or key.find(':') != -1:
-            raise ValueError, 'There should be no spaces in header keys'
+            raise ValueError('There should be no spaces in header keys')
         value = value.strip()
         if key.lower() == "status":
             self.setStatus(str(value))
@@ -833,7 +833,7 @@ class Response(object):
         """
         out.write("Status: %s\n" % self.status)
         out.write('\n'.join(['%s: %s' % (hkey, self.headers[hkey])
-                             for hkey in self.headers.keys()]))
+                             for hkey in list(self.headers.keys())]))
         out.write('\n\n')
         self._headers_sent = True
 
@@ -866,7 +866,7 @@ def run_pyblosxom():
     # if there's no REQUEST_METHOD, then this is being run on the
     # command line and we should execute the command_line_handler.
     if not "REQUEST_METHOD" in os.environ:
-        from Pyblosxom.commandline import command_line_handler
+        from .Pyblosxom.commandline import command_line_handler
 
         if len(sys.argv) <= 1:
             sys.argv.append("test")

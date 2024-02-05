@@ -148,7 +148,7 @@ class EntryBase:
 
         :returns: list of metadata keys
         """
-        return self._metadata.keys()
+        return list(self._metadata.keys())
 
     getMetadataKeys = tools.deprecated_function(get_metadata_keys)
 
@@ -196,7 +196,7 @@ class EntryBase:
             # here, the templates will use the raw string value
             # from the user metadata, rather than the value
             # derived from mtime.
-            if data.has_key('date'):
+            if 'date' in data:
                 data.pop('date')
             mycache[entryid] = data
 
@@ -233,14 +233,15 @@ class EntryBase:
         # really RFC-compliant: directives %a and %b are locale
         # dependent.  Technically, we're after english locale, but
         # only 'C' locale is guaranteed to exist.
-        loc = locale.getlocale(locale.LC_ALL)
+        #loc = locale.getlocale(locale.LC_ALL)
         locale.setlocale(locale.LC_ALL, 'C')
 
         self['rfc822date'] = time.strftime('%a, %d %b %Y %H:%M GMT', \
                                            gmtimetuple)
 
         # set the locale back
-        locale.setlocale(locale.LC_ALL, loc)
+        #locale.setlocale(locale.LC_ALL, loc)
+        locale.resetlocale()
 
     setTime = tools.deprecated_function(set_time)
 
@@ -323,13 +324,13 @@ class EntryBase:
 
         :param newdict: the dict we're updating this one with
         """
-        for mem in newdict.keys():
+        for mem in list(newdict.keys()):
             if mem == CONTENT_KEY:
                 self.set_data(newdict[mem])
             else:
                 self.set_metadata(mem, newdict[mem])
 
-    def has_key(self, key):
+    def __contains__(self, key):
         """
         Returns whether a given key is in the metadata dict.  If the
         key is the ``CONTENT_KEY``, then we automatically return true.

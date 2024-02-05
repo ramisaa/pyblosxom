@@ -2,6 +2,7 @@ import locale
 import os
 import sys
 import time
+import operator
 from Pyblosxom import tools
 from Pyblosxom.entries.fileentry import FileEntry
 
@@ -78,8 +79,8 @@ def blosxom_handler(request):
     data["latest_date"] = time.strftime('%a, %d %b %Y', mtime_tuple)
 
     # Make sure we get proper 'English' dates when using standards
-    loc = locale.getlocale(locale.LC_ALL)
-    locale.setlocale(locale.LC_ALL, 'C')
+    loc = locale.getlocale(locale.LC_TIME)
+    locale.setlocale(locale.LC_TIME, 'C')
 
     data["latest_w3cdate"] = time.strftime('%Y-%m-%dT%H:%M:%SZ',
                                            mtime_gmtuple)
@@ -87,7 +88,7 @@ def blosxom_handler(request):
                                               mtime_gmtuple)
 
     # set the locale back
-    locale.setlocale(locale.LC_ALL, loc)
+    locale.setlocale(locale.LC_TIME, loc)
 
     # we pass the request with the entry_list through the prepare
     # callback giving everyone a chance to transform the data.  the
@@ -97,7 +98,8 @@ def blosxom_handler(request):
     # now we pass the entry_list through the renderer
     entry_list = data["entry_list"]
     renderer = data['renderer']
-
+    print(data)
+    print(request)
     if renderer and not renderer.rendered:
         if entry_list:
             renderer.set_content(entry_list)
@@ -109,7 +111,7 @@ def blosxom_handler(request):
         else:
             renderer.add_header('Status', '404 Not Found')
             renderer.set_content(
-                {'title': 'The page you are looking for is not available',
+                {'title': 'Thee page you are looking for is not available',
                  'body': 'Somehow I cannot find the page you want. ' +
                          'Go Back to <a href="%s">%s</a>?'
                          % (config["base_url"], config["blog_title"])})
@@ -202,7 +204,7 @@ def blosxom_file_list_handler(args):
 
     data = request.get_data()
     config = request.get_configuration()
-
+    print(data, config)
     if data['bl_type'] == 'dir':
         file_list = tools.walk(request,
                                data['root_datadir'],
@@ -211,9 +213,9 @@ def blosxom_file_list_handler(args):
         file_list = [data['root_datadir']]
     else:
         file_list = []
+    print(file_list)
 
     entry_list = [FileEntry(request, e, data["root_datadir"]) for e in file_list]
-
     # if we're looking at a set of archives, remove all the entries
     # that aren't in the archive
     if data.get("pi_yr", ""):
@@ -252,7 +254,9 @@ def blosxom_sort_list_handler(args):
     entry_list = args["entry_list"]
 
     entry_list = [(e._mtime, e) for e in entry_list]
-    entry_list.sort()
+    # Sort only by first element. Second element is a FileEntry
+    # and doesn't support comparison operators.
+    entry_list.sort(key = operator.itemgetter(0))
     entry_list.reverse()
     entry_list = [e[1] for e in entry_list]
 
@@ -287,7 +291,7 @@ def blosxom_process_path_info(args):
     # string variable, the "default_flavour" setting in the config.py
     # file, or "html"
     flav = config.get("default_flavour", "html")
-    if form.has_key("flav"):
+    if "flav" in form:
         flav = form["flav"].value
 
     data['flavour'] = flav
@@ -337,14 +341,14 @@ def blosxom_process_path_info(args):
     else:
         # this is either a file or a date
 
-        ext = tools.what_ext(data["extensions"].keys(), absolute_path)
+        ext = tools.what_ext(list(data["extensions"].keys()), absolute_path)
         if not ext:
             # it's possible we didn't find the file because it's got a
             # flavour thing at the end--so try removing it and
             # checking again.
             new_path, flav = os.path.splitext(absolute_path)
             if flav:
-                ext = tools.what_ext(data["extensions"].keys(), new_path)
+                ext = tools.what_ext(list(data["extensions"].keys()), new_path)
                 if ext:
                     # there is a flavour-like thing, so that's our new
                     # flavour and we adjust the absolute_path and
@@ -458,4 +462,3 @@ def blosxom_truncate_list_handler(args):
     if num_entries and truncate:
         entry_list = entry_list[:num_entries]
     return entry_list
-

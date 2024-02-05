@@ -27,7 +27,7 @@ class TestEntryBase(UnitTestBase):
         self.eq_(e.get_data(), s1)
         self.eq_(type(e.get_data()), str)
 
-        s2 = u"foo foo foo foo foo"
+        s2 = "foo foo foo foo foo"
         e.set_data(s2)
         self.eq_(e.get_data(), s2)
         self.eq_(type(e.get_data()), str)
@@ -38,7 +38,7 @@ class TestEntryBase(UnitTestBase):
 
     def test_metadata(self):
         e = EntryBase(req_())
-        self.eq_(e.get_metadata_keys(), STANDARD_FILTERS.keys())
+        self.eq_(e.get_metadata_keys(), list(STANDARD_FILTERS.keys()))
         self.eq_(e.get_metadata("foo"), None)
         self.eq_(e.get_metadata("foo", "bar"), "bar")
         e.set_metadata("foo", "bar")
@@ -74,7 +74,7 @@ class TestEntryBase(UnitTestBase):
             l.sort()
             return l
 
-        self.eq_(sortlist(e.keys()), sortlist(STANDARD_FILTERS.keys() + ["foo", "body"]))
+        self.eq_(sortlist(list(e.keys())), sortlist(list(STANDARD_FILTERS.keys()) + ["foo", "body"]))
 
         self.eq_(e["foo"], "bar")
         self.eq_(e.get("foo"), "bar")
@@ -92,9 +92,9 @@ class TestEntryBase(UnitTestBase):
         # e.set("faz", "baz")
         # yield eq_, e.get("faz"), "baz"
 
-        self.eq_(e.has_key("foo"), True)
-        self.eq_(e.has_key("foo2"), False)
-        self.eq_(e.has_key("body"), True)
+        self.eq_("foo" in e, True)
+        self.eq_("foo2" in e, False)
+        self.eq_("body" in e, True)
 
         # FIXME - EntryBase doesn't support "in" operator.
         # self.eq_("foo" in e, True)
@@ -152,7 +152,7 @@ class TestEntryBase(UnitTestBase):
         self.__tz = environ.get('TZ')
         environ['TZ'] = 'US/Eastern'
         time.tzset()
-    
+
     def __restore_tz(self):
         """
         Restore time zone to what it was before __force_tz() call.
