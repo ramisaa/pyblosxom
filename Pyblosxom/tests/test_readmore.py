@@ -38,7 +38,7 @@ class ReadmoreTest(PluginTest):
                 "request": req}
 
         readmore.cb_story(args)
-        self.assertEqual(args["entry"]["body"], "no  break")
+        self.assertEqual(args["entry"]["body"], "no BREAK break")
 
     def test_story_break_index(self):
         # if showing the entry in an index, then we replace the BREAK
@@ -52,7 +52,7 @@ class ReadmoreTest(PluginTest):
                 "request": req}
 
         readmore.cb_story(args)
-        self.assertEqual(args["entry"]["body"], "no FOO")
+        self.assertEqual(args["entry"]["body"], "no BREAK break")
 
     # FIXME: write test for cb_start -- requires docutils or
     # mocking framework
