@@ -1,16 +1,19 @@
-Master branch Build Status:
+Hello there. This is a fork of Pyblosxom that is going to places. This is the last version that works as intended. 
+It has all Python 3 fixes included with tiny fixes and *does not have the comments plugin nor anything related to that* as it requires 
+fixing for Python 3 and I am not going to use it at all. Feel free to fork this and add and fix comments plugin if you wish. 
 
-.. image:: https://travis-ci.org/pyblosxom/pyblosxom.svg?branch=master
-   :target: https://travis-ci.org/pyblosxom/pyblosxom
-   
+So where I am going with this? I want to play around with an idea of wiki-like pages with Markdown syntax. Without the user 
+interaction or www-based editing tools. So I will be doing a lot of restructuring and changes of how things work just for my 
+own amusement. I took Pyblosxom as base as I think it has a cute idea and has all the foundation laid down for me to hack away. 
 
+Later I may add Gopher flavour. And / OR maybe I think about how this would work with a BBS system. Just because. And in distant future I 
+may think if it would possible to include web components or something similar for interactive content. 
 
+Thanks Pyblosxom Team! 
 
-Python3 version (In progress) : 
+Oh, I accidentally left some debug-prints in so maybe there will be one more final final version cleaning things up before any major 
+turn takes place. 
 
-.. image:: https://travis-ci.org/pyblosxom/pyblosxom.svg?branch=python3
-   :target: https://travis-ci.org/pyblosxom/pyblosxom
-   
 =================
  About Pyblosxom
 =================
