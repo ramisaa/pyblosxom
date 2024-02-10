@@ -11,8 +11,6 @@ may think if it would possible to include web components or something similar fo
 
 Thanks Pyblosxom Team! 
 
-Oh, I accidentally left some debug-prints in so maybe there will be one more final final version cleaning things up before any major 
-turn takes place. 
 
 =================
  About Pyblosxom
