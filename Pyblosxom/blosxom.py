@@ -98,8 +98,6 @@ def blosxom_handler(request):
     # now we pass the entry_list through the renderer
     entry_list = data["entry_list"]
     renderer = data['renderer']
-    print(data)
-    print(request)
     if renderer and not renderer.rendered:
         if entry_list:
             renderer.set_content(entry_list)
@@ -204,7 +202,6 @@ def blosxom_file_list_handler(args):
 
     data = request.get_data()
     config = request.get_configuration()
-    print(data, config)
     if data['bl_type'] == 'dir':
         file_list = tools.walk(request,
                                data['root_datadir'],
@@ -213,8 +210,7 @@ def blosxom_file_list_handler(args):
         file_list = [data['root_datadir']]
     else:
         file_list = []
-    print(file_list)
-
+    
     entry_list = [FileEntry(request, e, data["root_datadir"]) for e in file_list]
     # if we're looking at a set of archives, remove all the entries
     # that aren't in the archive
